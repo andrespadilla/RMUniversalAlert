@@ -13,6 +13,7 @@
 @class RMUniversalAlert;
 
 typedef void(^RMUniversalAlertCompletionBlock)(RMUniversalAlert * __nonnull alert, NSInteger buttonIndex);
+typedef void(^RMUniversalAlertTextFieldCompletionBlock)(RMUniversalAlert * __nonnull alert, NSInteger buttonIndex, NSString *__nonnull text);
 
 @interface RMUniversalAlert : NSObject
 
@@ -23,6 +24,21 @@ typedef void(^RMUniversalAlertCompletionBlock)(RMUniversalAlert * __nonnull aler
                            destructiveButtonTitle:(nullable NSString *)destructiveButtonTitle
                                 otherButtonTitles:(nullable NSArray *)otherButtonTitles
                                          tapBlock:(nullable RMUniversalAlertCompletionBlock)tapBlock;
+
+// Custom code to support showing an alert with a UITextField
+
++ (nonnull instancetype)showAlertInViewController:(nonnull UIViewController *)viewController
+                                        withTitle:(nullable NSString *)title
+                                          message:(nullable NSString *)message
+                                       textToEdit:(nullable NSString *)text
+                                      placeholder:(nullable NSString *)placeholder
+                                  isPasswordField:(BOOL)isPasswordField
+                                cancelButtonTitle:(nullable NSString *)cancelButtonTitle
+                           destructiveButtonTitle:(nullable NSString *)destructiveButtonTitle
+                                otherButtonTitles:(nullable NSArray *)otherButtonTitles
+                                         tapBlock:(nullable RMUniversalAlertTextFieldCompletionBlock)tapBlock;
+
+// End custom code
 
 + (nonnull instancetype)showActionSheetInViewController:(nonnull UIViewController *)viewController
                                               withTitle:(nullable NSString *)title

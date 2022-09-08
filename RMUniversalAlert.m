@@ -94,6 +94,89 @@ static NSInteger const RMUniversalAlertFirstOtherButtonIndex = 2;
     return alert;
 }
 
+// Custom code to support showing an alert with a UITextField
+
++ (instancetype)showAlertInViewController:(UIViewController *)viewController
+                                withTitle:(NSString *)title
+                                  message:(NSString *)message
+                               textToEdit:(NSString *)text
+                              placeholder:(NSString *)placeholder
+                          isPasswordField:(BOOL)isPasswordField
+                        cancelButtonTitle:(NSString *)cancelButtonTitle
+                   destructiveButtonTitle:(NSString *)destructiveButtonTitle
+                        otherButtonTitles:(NSArray *)otherButtonTitles
+                                 tapBlock:(RMUniversalAlertTextFieldCompletionBlock)tapBlock
+{
+    RMUniversalAlert *alert = [[RMUniversalAlert alloc] init];
+    
+    alert.hasCancelButton = cancelButtonTitle != nil;
+    alert.hasDestructiveButton = destructiveButtonTitle != nil;
+    alert.hasOtherButtons = otherButtonTitles.count > 0;
+    
+    if ([UIAlertController class]) {
+        alert.alertController = [UIAlertController showAlertInViewController:viewController
+                                                                   withTitle:title message:message
+                                                                  textToEdit:text
+                                                                 placeholder:placeholder
+                                                             isPasswordField:isPasswordField
+                                                           cancelButtonTitle:cancelButtonTitle
+                                                      destructiveButtonTitle:destructiveButtonTitle
+                                                           otherButtonTitles:otherButtonTitles
+                                                                    tapBlock:^(UIAlertController *controller, UIAlertAction *action, NSInteger buttonIndex, NSString *resultText){
+                                                                        if (tapBlock) {
+                                                                            tapBlock(alert, buttonIndex, resultText);
+                                                                        }
+                                                                    }];
+    } else {
+        NSMutableArray *other = [NSMutableArray array];
+        
+        if (destructiveButtonTitle) {
+            [other addObject:destructiveButtonTitle];
+        }
+        
+        if (otherButtonTitles) {
+            [other addObjectsFromArray:otherButtonTitles];
+        }
+        
+        UIAlertViewStyle style;
+        if (isPasswordField) {
+            style = UIAlertViewStyleSecureTextInput;
+        }
+        else {
+            style = UIAlertViewStylePlainTextInput;
+        }
+        
+        alert.alertView =  [UIAlertView showWithTitle:title
+                                              message:message
+                                                style:style
+                                           textToEdit:text
+                                          placeholder:placeholder
+                                    cancelButtonTitle:cancelButtonTitle
+                                    otherButtonTitles:other
+                                             tapBlock:^(UIAlertView *alertView, NSInteger buttonIndex, NSString *resultText){
+                                                 if (tapBlock) {
+                                                     if (buttonIndex == alertView.cancelButtonIndex) {
+                                                         tapBlock(alert, RMUniversalAlertCancelButtonIndex, resultText);
+                                                     } else if (destructiveButtonTitle) {
+                                                         if (buttonIndex == alertView.firstOtherButtonIndex) {
+                                                             tapBlock(alert, RMUniversalAlertDestructiveButtonIndex, resultText);
+                                                         } else if (otherButtonTitles.count) {
+                                                             NSInteger otherOffset = buttonIndex - alertView.firstOtherButtonIndex;
+                                                             tapBlock(alert, RMUniversalAlertFirstOtherButtonIndex + otherOffset - 1, resultText);
+                                                         }
+                                                     } else if (otherButtonTitles.count) {
+                                                         NSInteger otherOffset = buttonIndex - alertView.firstOtherButtonIndex;
+                                                         tapBlock(alert, RMUniversalAlertFirstOtherButtonIndex + otherOffset, resultText);
+                                                     }
+                                                 }
+                                             }];
+    }
+    
+    return alert;
+}
+
+// End custom code
+
 + (instancetype)showActionSheetInViewController:(UIViewController *)viewController
                                       withTitle:(NSString *)title
                                         message:(NSString *)message
